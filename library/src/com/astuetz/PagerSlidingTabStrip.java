@@ -72,6 +72,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	private Paint rectPaint;
 	private Paint dividerPaint;
+    private Paint badgePaint;
 
 	private int indicatorColor = 0xFF666666;
 	private int underlineColor = 0x1A000000;
@@ -86,6 +87,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private int dividerPadding = 12;
 	private int tabPadding = 24;
 	private int dividerWidth = 1;
+
+    private Map<Integer, Integer> badgeCount;
+    private int badgeBackgroundColor = 0xFFFF0000;
+    private int badgeTextColor = 0xFFFFFFFF;
 
 	private int tabTextSize = 12;
 	private int tabTextColor = 0xFF666666;
@@ -151,6 +156,8 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		shouldExpand = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsShouldExpand, shouldExpand);
 		scrollOffset = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsScrollOffset, scrollOffset);
 		textAllCaps = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsTextAllCaps, textAllCaps);
+        badgeBackgroundColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsBadgeBackgroundColor, badgeBackgroundColor);
+        badgeTextColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsBadgeTextColor, badgeTextColor);
 
 		a.recycle();
 
@@ -161,6 +168,12 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		dividerPaint = new Paint();
 		dividerPaint.setAntiAlias(true);
 		dividerPaint.setStrokeWidth(dividerWidth);
+
+        badgePaint = new Paint();
+        badgePaint.setAntiAlias(true);
+        badgePaint.setStyle(Style.FILL);
+
+        badgeCount = new HashMap<Integer, Integer>();
 
 		defaultTabLayoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
 		expandedTabLayoutParams = new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
@@ -348,6 +361,20 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			View tab = tabsContainer.getChildAt(i);
 			canvas.drawLine(tab.getRight(), dividerPadding, tab.getRight(), height - dividerPadding, dividerPaint);
 		}
+
+        // Draw Badge
+        for (int i = 0; i < tabCount; i++) {
+            View tab = tabsContainer.getChildAt(i);
+            if (badgeCount.containsKey(i) && badgeCount.get(i) > 0) {
+                badgePaint.setColor(badgeBackgroundColor);
+                canvas.drawCircle(tab.getRight() - 25, 24, 14, badgePaint);
+
+                Paint paint = new Paint();
+                paint.setColor(badgeTextColor);
+                paint.setTextSize(18);
+                canvas.drawText(String.valueOf(badgeCount.get(i)), tab.getRight() - 30, 30, paint);
+            }
+        }
 	}
 
 	private class PageListener implements OnPageChangeListener {
@@ -527,6 +554,29 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	public int getTabPaddingLeftRight() {
 		return tabPadding;
 	}
+
+    public int getBadgeBackgroundColor() {
+        return badgeBackgroundColor;
+    }
+
+    public void setBadgeBackgroundColor(int badgeBackgroundColor) {
+        this.badgeBackgroundColor = badgeBackgroundColor;
+        invalidate();
+    }
+
+    public int getBadgeTextColor() {
+        return badgeTextColor;
+    }
+
+    public void setBadgeTextColor(int badgeTextColor) {
+        this.badgeTextColor = badgeTextColor;
+        invalidate();
+    }
+
+    public void updateBadgeCount(int tabIndex, int count) {
+        badgeCount.put(tabIndex, count);
+        invalidate();
+    }
 
 	@Override
 	public void onRestoreInstanceState(Parcelable state) {
